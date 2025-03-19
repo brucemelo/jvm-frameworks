@@ -1,0 +1,64 @@
+buildscript {
+  ext {
+    joobyVersion = System.getProperty("joobyVersion")
+  }
+}
+
+plugins {
+  id "application"
+  id "io.jooby.run" version "${joobyVersion}"
+  id "io.spring.dependency-management" version "1.1.0"
+  id "com.google.osdetector" version "1.7.3"
+  id "com.github.johnrengelman.shadow" version "8.1.1"
+}
+
+group "app"
+version "1.0.0"
+mainClassName = "app.App"
+sourceCompatibility = 17
+
+repositories {
+  mavenLocal()
+  mavenCentral()
+}
+
+dependencyManagement {
+  imports {
+    mavenBom "io.jooby:jooby-bom:$joobyVersion"
+  }
+}
+
+dependencies {
+  implementation "io.jooby:jooby-netty"
+  implementation "io.jooby:jooby-avaje-jsonb"
+  implementation "io.jooby:jooby-logback"
+  annotationProcessor "io.avaje:avaje-jsonb-generator"
+
+  testImplementation "org.junit.jupiter:junit-jupiter-api:5.11.4"
+  testImplementation "org.junit.jupiter:junit-jupiter-engine:5.11.4"
+  testImplementation "io.jooby:jooby-test"
+  testImplementation "com.squareup.okhttp3:okhttp:4.12.0"
+}
+
+test {
+  useJUnitPlatform()
+}
+
+/** Java debug information: */
+tasks.withType(JavaCompile) {
+  options.compilerArgs += [
+    '-parameters',
+  ]
+  options.debug = true
+}
+
+shadowJar {
+  mergeServiceFiles()
+}
+
+joobyRun {
+  mainClass = mainClassName
+  restartExtensions = ["conf", "properties", "class"]
+  compileExtensions = ["java"]
+  port = 8080
+}
